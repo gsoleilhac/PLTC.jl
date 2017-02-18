@@ -1,20 +1,23 @@
 ##################### A1 #####################
 
 function A1(S::String, T::String)::Int
-	@inbounds  M = [pls(S[1:i], T[1:j]) for i in 1:length(S), j in 1:length(T)]::Matrix{Int}
-	println(maximum(M))
-    maximum(M)
-end
-
-function A1bis(S::String, T::String)::Int
 	res = 0
-	@inbounds for i=1:length(S), j=1:length(T)
-		res = max(res, pls(S[1:i], T[1:j]))
+	for i=1:length(S), j=1:length(T)
+		@inbounds res = max(res, pls(S[1:i], T[1:j]))
 	end
 	res
 end
 
-function pls(a::String,b::String)::Int
+function A1parallel(S::String, T::String)::Int
+	ls,lt = length(S),length(T)
+	res = @parallel max for ind=1:ls*lt
+		i,j = ind2sub((ls,lt), ind)
+		pls(S[1:i], T[1:j])
+	end
+	res
+end
+
+@everywhere function pls(a::String,b::String)::Int
 	if length(a) == 1 || length(b) == 1
 		return a[end] == b[end] ? 1 : 0
 	else
